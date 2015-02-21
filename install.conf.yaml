@@ -1,4 +1,7 @@
 - clean: ['~']
 - link: 
     ~/.emacs: emacs
-- shell: []
+    /usr/bin/emacsclient-merge: emacsclient-merge
+- shell: 
+    - [hg --config ui.merge=emacsclient-merge, "Setting hg to use emacsclient-merge"]
+    - [hg --config merge-tools.emacsclient-merge.args="$local $other $base $output", "Configuring emacsclient-merge"]
