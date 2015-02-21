@@ -1,3 +1,4 @@
-- clean: []
-- link: {}
+- clean: ['~']
+- link: 
+    ~/.emacs: emacs
 - shell: []
