@@ -3,4 +3,5 @@
     ~/.emacs: emacs
     ~/.hgrc: hgrc
     /usr/bin/emacsclient-merge: emacsclient-merge
-- shell: []
+- shell:
+    - [ "if [ -e ~/.hgrc ] && [ ! -h ~/.hgrc ]; then mv ~/.hgrc ~/.hgrc-auth; fi" ]
