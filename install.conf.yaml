@@ -1,3 +1,4 @@
+# this assumes you will re-run install until it stops failing
 - clean: ['~']
 - link: 
     ~/.emacs: emacs
