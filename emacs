@@ -16,6 +16,9 @@
 (require 'powershell-mode)
 (add-to-list 'auto-mode-alist '("\\.ps1$" . powershell-mode))
 
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(require 'py-autopep8)
+(add-hook 'before-save-hook 'py-autopep8-before-save)
 
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
@@ -46,6 +49,10 @@
 (require 'go-mode)
 (add-hook 'before-save-hook 'gofmt-before-save)
 
+(add-hook 'go-mode-hook '(lambda ()
+  (local-set-key (kbd "C-c C-k") 'godoc)))
+
+
 (setq default-directory "~/")
 
 (when (memq window-system '(mac ns))
@@ -58,11 +65,15 @@
 (add-to-list 'load-path "~/gocode/src/github.com/dougm/goflymake")
 (require 'go-flymake)
 
+
 (require 'go-eldoc) ;; Don't need to require, if you install by package.el
 (add-hook 'go-mode-hook 'go-eldoc-setup)
 
 (set-face-attribute 'eldoc-highlight-function-argument nil
                     :underline t :foreground "green"
                     :weight 'bold)
-(require 'auto-complete-config)
-(require 'go-autocomplete)
+
+(add-hook 'go-mode-hook 'company-mode)
+(add-hook 'go-mode-hook (lambda ()
+  (set (make-local-variable 'company-backends) '(company-go))
+  (company-mode)))
