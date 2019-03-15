@@ -1,0 +1,232 @@
+(when (>= emacs-major-version 24)
+  (require 'package)
+  (package-initialize)
+  (add-to-list 'package-archives '("marmalade" . "https://marmalade-repo.org/packages/"))
+  (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t))
+
+(defun ensure-package-installed (&rest packages)
+  "Assure every package is installed, ask for installation if it’s not.
+
+Return a list of installed packages or nil for every skipped package."
+  (mapcar
+   (lambda (package)
+     ;; (package-installed-p 'evil)
+     (if (package-installed-p package)
+	 nil
+       (if (y-or-n-p (format "Package %s is missing. Install it? " package))
+	   (package-install package)
+	 package)))
+   packages))
+
+(or (file-exists-p package-user-dir)
+    (package-refresh-contents))
+
+(ensure-package-installed 'zenburn-theme 'nyan-mode 'paredit 'rainbow-delimiters 'ace-window 'align-cljlet 'ido-vertical-mode 'clj-refactor 'clojure-mode 'column-enforce-mode)
+
+(require 'ido)
+(ido-mode t)
+
+(require 'ido-vertical-mode)
+(ido-vertical-mode t)
+
+(require 'nyan-mode)
+(nyan-mode t)
+(setq nyan-animate-nyancat t)
+(setq nyan-wavy-trail t)
+
+(require 'rainbow-delimiters)
+;; seems broken after upgrading to emacs 26?
+;;(require 'thrift)
+;;(add-to-list 'auto-mode-alist '("\\.thrift$" . thrift-mode))
+(add-to-list 'auto-mode-alist '("\\.sls\\'" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.aurora\\'" . python-mode))
+
+
+(require 'align-cljlet)
+
+; Replace metakey on OSX
+(setq ns-alternate-modifier 'meta
+      ns-command-modifier 'meta)
+
+(global-set-key (kbd "C-x p") 'previous-multiframe-window)
+
+(load-theme 'zenburn t)
+
+(add-to-list 'exec-path "/usr/local/bin")
+(setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
+
+
+
+;; Depends on having your nrepl properly configured in profiles.clj
+;; e.g.
+;; {:user {:plugins [
+;;                   [lein-repo "0.2.1"]
+;;                   [cider/cider-nrepl "0.12.0"]]}
+;;         :dependencies [[org.clojure/tools.nrepl "0.2.12"]]}
+;;  :uberjar {:plugins [[lein-repo "0.2.1"]]}}
+
+
+(setq cider-inject-dependencies-at-jack-in nil)
+
+(global-set-key (kbd "<end>") 'move-end-of-line)
+
+(setq cider-auto-select-error-buffer nil)
+(setq cider-repl-use-pretty-printing t)
+(setq cider-pprint-fn 'fipp)
+;;(setq cider-pprint-fn 'puget)
+
+(global-set-key (kbd "C-z") 'noop)
+(global-set-key (kbd "C-x C-z") 'noop)
+
+(defun paredit-mode-config ()
+  (local-set-key (kbd "C-c k") 'paredit-hack-kill-region))
+
+(global-set-key (kbd "C-c g") 'magit-status)
+
+(add-hook 'clojure-mode-hook #'paredit-mode)
+(add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'clojure-mode-hook #'show-paren-mode)
+(add-hook 'clojure-mode-hook (lambda () (add-hook 'before-save-hook 'whitespace-cleanup)))
+(add-hook 'paredit-mode-hook #'paredit-mode-config)
+
+
+
+;(add-hook 'before-save-hook 'delete-blank-lines)
+(global-set-key (kbd "C-x o") 'ace-window)
+
+
+;; this seems to break when cider takes over buffers
+(global-set-key (kbd "C-x j") 'aw-flip-window)
+
+;;(global-set-key (kbd "C-x j") (lambda () (interactive) (other-window -1)))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(cider-lein-parameters "with-profile +local-dtab,+repl repl :headless :host ::")
+ '(package-selected-packages
+   (quote
+    (clojure-mode-extra-font-locking zenburn-theme yaml-mode thrift terraform-mode switch-window realgud rainbow-delimiters powerline org-trello nyan-mode magit list-utils jedi ido-vertical-mode git-link git-auto-commit-mode emojify company column-marker column-enforce-mode clj-refactor autopair align-cljlet ace-window ace-jump-mode)))
+ '(safe-local-variable-values
+   (quote
+    ((eval define-clojure-indent
+	   (:require 0)
+	   (:import
+	    (quote
+	     (0
+	      (0))))
+	   (defrecord
+	     (quote
+	      (1 nil
+		 (:defn))))
+	   (forv 1)
+	   (for+ 1)
+	   (future-with 1)
+	   (start-unless 1)
+	   (stop-when 1)
+	   (do-at 1)
+	   (thrown\? 1)
+	   (thrown-with-msg\? 2))
+     (eval define-clojure-indent
+	   (:require 0)
+	   (:import
+	    (quote
+	     (0
+	      (0))))
+	   (defrecord
+	     (quote
+	      (1 nil
+		 (:defn))))
+	   (forv 1)
+	   (for+ 1)
+	   (future-with 1)
+	   (do-at 1)
+	   (thrown\? 1)
+	   (thrown-with-msg\? 2))
+     (eval define-clojure-indent
+	   (:require 0)
+	   (:import
+	    (quote
+	     (0
+	      (0))))
+	   (defrecord
+	     (quote
+	      (1 nil
+		 (:defn))))
+	   (forv 1)
+	   (for+ 1))))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+(setenv "MESOS_NATIVE_JAVA_LIBRARY" "/usr/local/Cellar/mesos/0.28.0/lib/libmesos.dylib")
+
+(require 'clj-refactor)
+
+(defun my-clojure-mode-hook ()
+  (clj-refactor-mode 1)
+  (yas-minor-mode 1) ; for adding require/use/import statements
+  ;; This choice of keybinding leaves cider-macroexpand-1 unbound
+  (column-enforce-mode 1)
+  (cljr-add-keybindings-with-prefix "C-c C-m"))
+
+(add-hook 'clojure-mode-hook #'my-clojure-mode-hook)
+
+(define-clojure-indent
+ (on-success '(2 nil nil [1]))
+ (on-failure '(2 nil nil [1]))
+ (register-sub '(0 [1]))
+ (register-handler '(0 [1]))
+ (GET '(1 nil nil [1]))
+ (POST '(1 nil nil [1]))
+ (PUT '(1 nil nil [1]))
+ (DELETE '(1 nil nil [1]))
+ (service '(1 nil [1]))
+ (defrecord '(1 nil [1]))
+ (:require '(0 [1]))
+ (:import '(0 [1])))
+
+(require 'ansi-color)
+(defun display-ansi-colors ()
+  (interactive)
+  (ansi-color-apply-on-region (point-min) (point-max)))
+
+(add-hook 'post-command-hook
+	  #'display-ansi-colors)
+
+(global-set-key (kbd "C-x <deletechar>") 'erase-buffer)
+(put 'erase-buffer 'disabled nil)
+
+(setenv "VAULT_ADDR" "https://vault.amperity.top:8200")
+
+(setq column-number-mode t)
+
+(defun copy-backward-sexp ()
+  (interactive)
+  (save-excursion
+    (copy-region-as-kill (point) (progn (backward-sexp) (point)))))
+
+(global-set-key (kbd "C-c w") 'copy-backward-sexp)
+
+
+(defun sort-words (reverse beg end)
+      "Sort words in region alphabetically, in REVERSE if negative.
+    Prefixed with negative \\[universal-argument], sorts in reverse.
+
+    The variable `sort-fold-case' determines whether alphabetic case
+    affects the sort order.
+
+    See `sort-regexp-fields'."
+      (interactive "*P\nr")
+      (sort-regexp-fields reverse "\\w+" "\\&" beg end))
+
+(defun sort-symbols (reverse beg end)
+      "Sort symbols in region alphabetically, in REVERSE if negative.
+    See `sort-words'."
+      (interactive "*P\nr")
+      (sort-regexp-fields reverse "\\(\\sw\\|\\s_\\)+" "\\&" beg end))
