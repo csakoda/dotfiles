@@ -22,13 +22,14 @@ Return a list of installed packages or nil for every skipped package."
 (or (file-exists-p package-user-dir)
     (package-refresh-contents))
 
-(ensure-package-installed 'zenburn-theme 'nyan-mode 'paredit 'rainbow-delimiters 'ace-window 'align-cljlet 'ido-vertical-mode 'clj-refactor 'clojure-mode 'column-enforce-mode)
+(ensure-package-installed 'zenburn-theme 'nyan-mode 'paredit 'rainbow-delimiters 'ace-window 'align-cljlet 'ido-vertical-mode 'clj-refactor 'clojure-mode 'column-enforce-mode 'magit 'ivy)
 
 (require 'ido)
 (ido-mode t)
 
 (require 'ido-vertical-mode)
 (ido-vertical-mode t)
+(setq ido-vertical-define-keys 'C-n-and-C-p-only)
 
 (require 'nyan-mode)
 (nyan-mode t)
@@ -106,9 +107,11 @@ Return a list of installed packages or nil for every skipped package."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(cider-lein-parameters "with-profile +local-dtab,+repl repl :headless :host ::")
+ '(helm-mode t)
+ '(ido-vertical-mode t)
  '(package-selected-packages
    (quote
-    (clojure-mode-extra-font-locking zenburn-theme yaml-mode thrift terraform-mode switch-window realgud rainbow-delimiters powerline org-trello nyan-mode magit list-utils jedi ido-vertical-mode git-link git-auto-commit-mode emojify company column-marker column-enforce-mode clj-refactor autopair align-cljlet ace-window ace-jump-mode)))
+    (helm-projectile projectile helm-cider helm clojure-mode-extra-font-locking zenburn-theme yaml-mode thrift terraform-mode switch-window realgud rainbow-delimiters powerline org-trello nyan-mode magit list-utils jedi ido-vertical-mode git-link git-auto-commit-mode emojify company column-marker column-enforce-mode clj-refactor autopair align-cljlet ace-window ace-jump-mode)))
  '(safe-local-variable-values
    (quote
     ((eval define-clojure-indent
@@ -230,3 +233,62 @@ Return a list of installed packages or nil for every skipped package."
     See `sort-words'."
       (interactive "*P\nr")
       (sort-regexp-fields reverse "\\(\\sw\\|\\s_\\)+" "\\&" beg end))
+
+(require 'helm-config)
+(helm-mode 1)
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
+(global-set-key (kbd "C-x b") 'helm-mini)
+
+(when (executable-find "ack")
+  (setq helm-grep-default-command "ack -Hn --smart-case --no-group --color %e %p %f"
+	helm-grep-default-recurse-command "ack -H --smart-case --no-group --color %e %p %f"))
+
+(helm-cider-mode 1)
+
+(projectile-global-mode)
+(define-key projectile-mode-map (kbd "M-p") 'projectile-command-map)
+
+(setq projectile-completion-system 'ivy)
+(helm-projectile-on)
+
+(require 'helm-grep)
+
+(defun helm-projectile-ack-types (&optional dir)
+  "Helm version of projectile-ack."
+  (interactive)
+  (let ((project-root (or dir (projectile-project-root) (error "You're not in a project"))))
+    (let (;; (ack-ignored (mapconcat
+	  ;;		'identity
+	  ;;		(cl-union (mapcar (lambda (path)
+	  ;;				    (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
+	  ;;				  (projectile-ignored-directories))
+	  ;;			  (mapcar (lambda (path)
+	  ;;				    (concat "--ignore-file=match:" (shell-quote-argument path)))
+	  ;;				  (append (projectile-ignored-files) (projectile-patterns-to-ignore)))) " "))
+	  (ack-ignored (helm-grep-read-ack-type))
+	  (helm-ack-grep-executable (cond
+				     ((executable-find "ack") "ack")
+				     ((executable-find "ack-grep") "ack-grep")
+				     (t (error "ack or ack-grep is not available")))))
+      (funcall 'run-with-timer 0.01 nil
+#'helm-projectile-grep-or-ack project-root t ack-ignored helm-ack-grep-executable))))
+(define-key projectile-mode-map (kbd "M-p s g") 'helm-projectile-ack-types)
+
+
+(require 'ivy)
+(ivy-mode 1)
+(setq ivy-use-virtual-buffers t)
+(setq ivy-count-format "(%d/%d) ")
+
+(require 'swiper)
+(global-set-key (kbd "C-s") 'swiper-helm)
+;; (package-initialize)
+(defun dabbrev-complation-at-point ()
+  (dabbrev--reset-global-variables)
+  (let* ((abbrev (dabbrev--abbrev-at-point))
+	 (candidates (dabbrev--find-all-expansions abbrev t))
+	 (bnd (bounds-of-thing-at-point 'symbol)))
+    (list (car bnd) (cdr bnd) candidates)))
+(add-to-list 'completion-at-point-functions 'dabbrev-complation-at-point)
+
+;;(global-set-key (kbd "M-/") 'complete-symbol)
