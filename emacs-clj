@@ -106,12 +106,12 @@ Return a list of installed packages or nil for every skipped package."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(cider-lein-parameters "with-profile +local-dtab,+repl repl :headless :host ::")
+ '(cider-lein-parameters "with-profiles +feature-dtab repl :headless :host ::")
  '(helm-mode t)
  '(ido-vertical-mode t)
  '(package-selected-packages
    (quote
-    (helm-projectile projectile helm-cider helm clojure-mode-extra-font-locking zenburn-theme yaml-mode thrift terraform-mode switch-window realgud rainbow-delimiters powerline org-trello nyan-mode magit list-utils jedi ido-vertical-mode git-link git-auto-commit-mode emojify company column-marker column-enforce-mode clj-refactor autopair align-cljlet ace-window ace-jump-mode)))
+    (helm-ag helm-projectile projectile helm-cider helm clojure-mode-extra-font-locking zenburn-theme yaml-mode thrift terraform-mode switch-window realgud rainbow-delimiters powerline org-trello nyan-mode magit list-utils jedi ido-vertical-mode git-link git-auto-commit-mode emojify company column-marker column-enforce-mode clj-refactor autopair align-cljlet ace-window ace-jump-mode)))
  '(safe-local-variable-values
    (quote
     ((eval define-clojure-indent
@@ -239,16 +239,20 @@ Return a list of installed packages or nil for every skipped package."
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-x b") 'helm-mini)
 
-(when (executable-find "ack")
-  (setq helm-grep-default-command "ack -Hn --smart-case --no-group --color %e %p %f"
-	helm-grep-default-recurse-command "ack -H --smart-case --no-group --color %e %p %f"))
+(when (executable-find "ag")
+  (setq helm-grep-default-command "ag -Hn --smart-case --no-group --color %e %p %f"
+	helm-grep-default-recurse-command "ag -H --smart-case --no-group --color --clojure --terraform --salt %e %p %f"))
+
+;; (when (executable-find "ack")
+;;   (setq helm-grep-default-command "ack -Hn --smart-case --no-group --color %e %p %f"
+;;	helm-grep-default-recurse-command "ack -H --smart-case --no-group --color %e %p %f"))
 
 (helm-cider-mode 1)
 
 (projectile-global-mode)
 (define-key projectile-mode-map (kbd "M-p") 'projectile-command-map)
 
-(setq projectile-completion-system 'ivy)
+(setq projectile-completion-system 'helm)
 (helm-projectile-on)
 
 (require 'helm-grep)
@@ -271,8 +275,9 @@ Return a list of installed packages or nil for every skipped package."
 				     ((executable-find "ack-grep") "ack-grep")
 				     (t (error "ack or ack-grep is not available")))))
       (funcall 'run-with-timer 0.01 nil
-#'helm-projectile-grep-or-ack project-root t ack-ignored helm-ack-grep-executable))))
-(define-key projectile-mode-map (kbd "M-p s g") 'helm-projectile-ack-types)
+	       #'helm-projectile-grep-or-ack project-root t ack-ignored helm-ack-grep-executable))))
+
+(define-key projectile-mode-map (kbd "M-p s g") 'helm-projectile-ag)
 
 
 (require 'ivy)
@@ -281,14 +286,33 @@ Return a list of installed packages or nil for every skipped package."
 (setq ivy-count-format "(%d/%d) ")
 
 (require 'swiper)
-(global-set-key (kbd "C-s") 'swiper-helm)
-;; (package-initialize)
-(defun dabbrev-complation-at-point ()
-  (dabbrev--reset-global-variables)
-  (let* ((abbrev (dabbrev--abbrev-at-point))
-	 (candidates (dabbrev--find-all-expansions abbrev t))
-	 (bnd (bounds-of-thing-at-point 'symbol)))
-    (list (car bnd) (cdr bnd) candidates)))
-(add-to-list 'completion-at-point-functions 'dabbrev-complation-at-point)
+(global-set-key (kbd "C-s") 'swiper)
 
-;;(global-set-key (kbd "M-/") 'complete-symbol)
+;; (defun dabbrev-complation-at-point ()
+;;   (dabbrev--reset-global-variables)
+;;   (let* ((abbrev (dabbrev--abbrev-at-point))
+;;	 (candidates (dabbrev--find-all-expansions abbrev t))
+;;	 (bnd (bounds-of-thing-at-point 'symbol)))
+;;     (list (car bnd) (cdr bnd) candidates)))
+;; (add-to-list 'completion-at-point-functions 'dabbrev-complation-at-point)
+
+;;(global-set-key (kbd "M-/") 'completion-at-point)
+
+
+(setq helm-autoresize-max-height 0)
+(setq helm-autoresize-min-height 30)
+(helm-autoresize-mode 1)
+
+(setq helm-split-window-in-side-p           nil ; open helm buffer inside current window, not occupy whole other window
+      ;; move to end or beginning of source when reaching top or bottom of source.
+      ;; also makes it so that sources are locked in helm-mini, need to use C-o to get around
+      helm-move-to-line-cycle-in-source     nil
+
+      helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
+      helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
+      helm-ff-file-name-history-use-recentf t
+      helm-echo-input-in-header-line t)
+
+(setq helm-buffers-fuzzy-matching t
+      helm-recentf-fuzzy-match    t)
+ 
